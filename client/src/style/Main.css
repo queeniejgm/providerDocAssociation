@@ -1,0 +1,10 @@
+.parent-div{
+    display: flex;
+    justify-content: space-between;
+}
+.pdf {
+    flex:1;
+}
+.form {
+    flex:1
+}
