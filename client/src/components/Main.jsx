@@ -98,7 +98,7 @@ class AssociateScreen extends Component {
     try {
       axios
         .get(
-          "https://goshenmedical.naiacorp.net/api/Account/GetAllEmployeesLite"
+          `${process.env.REACT_APP_GOSHEN_API_URL}/api/Account/GetAllEmployeesLite`
         )
         .then((res) => {
           this.handleEmployeeList(res.data, this);
@@ -111,7 +111,9 @@ class AssociateScreen extends Component {
   refreshDocument() {
     try {
       axios
-        .get("http://localhost:8000/api/s3-provider-docs/one-to-associate")
+        .get(
+          `${process.env.REACT_APP_API_URL}/api/s3-provider-docs/one-to-associate`
+        )
         .then((res) => {
           this.setState({ s3DocId: res.data._id });
           this.handleS3Doc(res.data.s3_key);
@@ -125,8 +127,7 @@ class AssociateScreen extends Component {
     this.setState({ s3Key: tempS3Key });
     const config = {
       headers: {
-        Authorization:
-          "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJVc2VyTmFtZSI6InRsZWUiLCJqdGkiOiI1OGI3YzFmNS1jMGIzLTQ1NzYtYWFkNC1hY2FiYTI2MDU5MGUiLCJpc3MiOiJOYWlhQ29ycCIsImF1ZCI6Ikdvc2hlbiBNZWRpY2FsIn0.NAxqEB0maK2Fh2Ch5xyc3r6L-PGEJo4XivKti3k6o8E",
+        Authorization: `Bearer ${process.env.REACT_APP_BEARER_TOKEN}`,
       },
     };
     const body = {
@@ -137,7 +138,7 @@ class AssociateScreen extends Component {
     try {
       axios
         .get(
-          `https://30f13p2g7e.execute-api.us-east-1.amazonaws.com/dev/patient/document_download?file_path=${body.file_path}&s3_bucket=${body.s3_bucket}&base64=${body.base64}`,
+          `${process.env.REACT_APP_S3_URL}/dev/patient/document_download?file_path=${body.file_path}&s3_bucket=${body.s3_bucket}&base64=${body.base64}`,
           config,
           {},
           true,
@@ -208,14 +209,14 @@ class AssociateScreen extends Component {
 
       try {
         await axios.post(
-          `http://localhost:8000/api/provider-docs`,
+          `${process.env.REACT_APP_API_URL}/api/provider-docs`,
           newProviderDoc,
           {},
           true,
           true
         );
         await axios.put(
-          `http://localhost:8000/api/s3-provider-docs/${this.state.s3DocId}`,
+          `${process.env.REACT_APP_API_URL}/api/s3-provider-docs/${this.state.s3DocId}`,
           { associated: true },
           {},
           true,

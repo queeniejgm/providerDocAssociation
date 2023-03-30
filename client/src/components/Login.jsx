@@ -24,7 +24,7 @@ class AssociateScreenLogin extends Component {
 
   async refreshTeamMemberList() {
     try {
-      axios.get("http://localhost:8000/api/data-team").then((res) => {
+      axios.get(`${process.env.REACT_APP_API_URL}/api/data-team`).then((res) => {
         const memberOptions = res.data.map((member) => {
           return { value: member._id, label: member.member_name };
         });
@@ -42,7 +42,7 @@ class AssociateScreenLogin extends Component {
     };
     try {
       axios
-        .post("http://localhost:8000/api/data-team", newMember)
+        .post(`${process.env.REACT_APP_API_URL}/api/data-team`, newMember)
         .then((res) => {
           this.refreshTeamMemberList();
         });
