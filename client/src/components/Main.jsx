@@ -109,18 +109,16 @@ class AssociateScreen extends Component {
   }
 
   refreshDocument() {
-    try {
-      axios
-        .get(
-          `${process.env.REACT_APP_API_URL}/api/s3-provider-docs/one-to-associate`
-        )
-        .then((res) => {
-          this.setState({ s3DocId: res.data._id });
-          this.handleS3Doc(res.data.s3_key);
-        });
-    } catch (error) {
-      console.log(error.response.data);
-    }
+    axios
+      .get(
+        `${process.env.REACT_APP_API_URL}/api/s3-provider-docs/one-to-associate`
+      )
+      .then((res) => {
+        this.setState({ s3DocId: res.data._id });
+        this.handleS3Doc(res.data.s3_key);
+      }, (error) => {
+        console.log(error.response.data);
+      });
   }
 
   handleS3Doc = async (tempS3Key) => {
@@ -145,7 +143,7 @@ class AssociateScreen extends Component {
           true
         )
         .then((res) => {
-          this.setState({ s3Image: `data:application/pdf;base64,${res.data}` });
+          this.setState({ s3Image: `data:application/pdf;base64,${res.data.data}` });
         });
     } catch (error) {
       console.log(error.response.data);
@@ -185,7 +183,6 @@ class AssociateScreen extends Component {
 
   render() {
     const createProviderDoc = async (e) => {
-      console.log("!!! state", this.state);
       if (!this.state.expirationDate) {
         message.error("Expiration Date is required");
         return;
@@ -230,6 +227,19 @@ class AssociateScreen extends Component {
       }
     };
 
+    const refreshDocument = async() => {
+    axios
+      .get(
+        `${process.env.REACT_APP_API_URL}/api/s3-provider-docs/one-to-associate`
+      )
+      .then((res) => {
+        this.setState({ s3DocId: res.data._id });
+        this.handleS3Doc(res.data.s3_key);
+      }, (error) => {
+        console.log(error.response.data);
+      });
+  }
+
     return (
       <div className="associate-screen-wrapper">
         <div className="form">
@@ -262,7 +272,7 @@ class AssociateScreen extends Component {
           <Button onClick={createProviderDoc}>Save</Button>
         </div>
         <div className="pdf">
-          <Button onClick={this.refreshDocument}>Next</Button>{" "}
+          <Button onClick={refreshDocument}>Next</Button>{" "}
           {this.state.s3Key}
           <embed
             src={this.state.s3Image}
