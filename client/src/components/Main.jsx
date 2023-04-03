@@ -133,21 +133,20 @@ class AssociateScreen extends Component {
       s3_bucket: "goshen-provider-documents",
       base64: "true",
     };
-    try {
-      axios
-        .get(
-          `${process.env.REACT_APP_S3_URL}/dev/patient/document_download?file_path=${body.file_path}&s3_bucket=${body.s3_bucket}&base64=${body.base64}`,
-          config,
-          {},
-          true,
-          true
-        )
-        .then((res) => {
-          this.setState({ s3Image: `data:application/pdf;base64,${res.data.data}` });
-        });
-    } catch (error) {
-      console.log(error.response.data);
-    }
+    axios
+      .get(
+        `${process.env.REACT_APP_S3_URL}/dev/patient/document_download?file_path=${body.file_path}&s3_bucket=${body.s3_bucket}&base64=${body.base64}`,
+        config,
+        {},
+        true,
+        true
+      )
+      .then((res) => {
+        this.setState({ s3Image: `data:application/pdf;base64,${res.data.data}` });
+      }, (error) => {
+        console.log("!!! err", error)
+        message.error(`Download document error: ${error.message}`)
+      });
   };
 
   handleEmployeeList = (data, self) => {
@@ -205,40 +204,50 @@ class AssociateScreen extends Component {
       };
 
       try {
-        await axios.post(
+        const addProviderDocResp = await axios.post(
           `${process.env.REACT_APP_API_URL}/api/provider-docs`,
           newProviderDoc,
           {},
           true,
           true
         );
-        await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/s3-provider-docs/${this.state.s3DocId}`,
-          { associated: true },
-          {},
-          true,
-          true
-        );
+        
+        if(addProviderDocResp.data.errors) {
+          message.error(addProviderDocResp.data.message)
+        } else {
+          const updateProviderDocResp = await axios.put(
+            `${process.env.REACT_APP_API_URL}/api/s3-provider-docs/${this.state.s3DocId}`,
+            { associated: true },
+            {},
+            true,
+            true
+          );
 
-        message.success("Successful!");
-        this.setState({ docType: "", expiry_date: null });
+          if(updateProviderDocResp.data.errors) {
+            message.error(addProviderDocResp.data.message)
+          } else {
+            message.success("Successful!");
+            this.setState({ docType: "", expiry_date: null });
+          }
+        }
+
       } catch (err) {
         message.error(`Error: ${err}`);
       }
     };
 
     const refreshDocument = async() => {
-    axios
-      .get(
-        `${process.env.REACT_APP_API_URL}/api/s3-provider-docs/one-to-associate`
-      )
-      .then((res) => {
-        this.setState({ s3DocId: res.data._id });
-        this.handleS3Doc(res.data.s3_key);
-      }, (error) => {
-        console.log(error.response.data);
-      });
-  }
+      axios
+        .get(
+          `${process.env.REACT_APP_API_URL}/api/s3-provider-docs/one-to-associate`
+        )
+        .then((res) => {
+          this.setState({ s3DocId: res.data._id });
+          this.handleS3Doc(res.data.s3_key);
+        }, (error) => {
+          console.log(error.response.data);
+        });
+    }
 
     return (
       <div className="associate-screen-wrapper">
