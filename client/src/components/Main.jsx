@@ -6,6 +6,7 @@ import Select from "react-select";
 import * as _ from "lodash";
 import { Button, message } from "antd";
 import axios from "axios";
+import * as moment from 'moment'
 
 class AssociateScreen extends Component {
   constructor(props) {
@@ -103,6 +104,9 @@ class AssociateScreen extends Component {
         .then((res) => {
           this.handleEmployeeList(res.data, this);
         });
+
+      const path = window.location.pathname.split("/")
+      axios.put(`${process.env.REACT_APP_API_URL}/api/data-team/${path[path.length-1]}`)
     } catch (error) {
       console.log("!!! GetAllEmployeesLite error", error);
     }
@@ -116,9 +120,15 @@ class AssociateScreen extends Component {
       .then((res) => {
         this.setState({ s3DocId: res.data._id });
         this.handleS3Doc(res.data.s3_key);
+
+        // code to not get pdfs that have been pulled in the last 15mins 
+        axios.put(`${process.env.REACT_APP_API_URL}/api/s3-provider-docs/${res.data._id}`, {reviewed:moment().add(15,"minutes").format()})
+        .then(res => console.log(res))
+        .catch(err => console.log(err))
       }, (error) => {
         console.log(error.response.data);
       });
+
   }
 
   handleS3Doc = async (tempS3Key) => {
@@ -244,6 +254,11 @@ class AssociateScreen extends Component {
         .then((res) => {
           this.setState({ s3DocId: res.data._id });
           this.handleS3Doc(res.data.s3_key);
+
+          // code to not get pdfs that have been pulled in the last 15mins 
+          axios.put(`${process.env.REACT_APP_API_URL}/api/s3-provider-docs/${res.data._id}`, {reviewed:moment().add(15,"minutes").format()})
+          .then(res => console.log(res))
+          .catch(err => console.log(err))
         }, (error) => {
           console.log(error.response.data);
         });

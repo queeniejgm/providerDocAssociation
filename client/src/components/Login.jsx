@@ -59,13 +59,12 @@ class AssociateScreenLogin extends Component {
         ></Input>
         <button onClick={this.handleSubmit}>Add Data Team Member</button>
         <Select
-          onChange={(value, e) => {
-            this.setState({ member: value });
+          onChange={(member, e) => {
+            this.setState({ member: member.value });
           }}
           options={this.state.memberOptions}
-          value={this.state.member}
         />
-        <Link to={"/main"} state={{ member: this.state.member }}>
+        <Link to={`/main/${this.state.member}`} state={{ member: this.state.member }}>
           <button>Login</button>
         </Link>
       </div>
