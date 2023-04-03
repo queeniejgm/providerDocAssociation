@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import Select from "react-select";
 import { Input } from "reactstrap";
 import axios from "axios";
+import { Button, message } from "antd";
 
 class AssociateScreenLogin extends Component {
   constructor(props) {
@@ -15,6 +16,7 @@ class AssociateScreenLogin extends Component {
       member: "",
       memberName: "",
       memberOptions: [],
+      memberList: []
     };
   }
 
@@ -29,7 +31,7 @@ class AssociateScreenLogin extends Component {
           return { value: member._id, label: member.member_name };
         });
 
-        this.setState({ memberOptions: memberOptions });
+        this.setState({ memberOptions: memberOptions, memberList: res.data });
       });
     } catch (error) {
       console.log(error);
@@ -51,6 +53,23 @@ class AssociateScreenLogin extends Component {
     }
   };
 
+  login = async (e) => {
+    const member = this.state.memberList.find(member =>  member._id === this.state.member)
+    if(!member) {
+      return;
+    }
+    try {
+      axios.put(`${process.env.REACT_APP_API_URL}/api/data-team/${member._id}`, {number_of_docs_associated: member.number_of_docs_associated+1})
+        .then((res) => {
+          window.location.href = "/main"
+        }, err => {
+          message.error(err.message)
+        });
+    } catch (error) {
+      console.log("!!! handleSubmit error", error);
+    }
+  };
+
   render() {
     return (
       <div>
@@ -64,9 +83,7 @@ class AssociateScreenLogin extends Component {
           }}
           options={this.state.memberOptions}
         />
-        <Link to={`/main/${this.state.member}`} state={{ member: this.state.member }}>
-          <button>Login</button>
-        </Link>
+        <Button onClick={this.login} >Login</Button>
       </div>
     );
   }

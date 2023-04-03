@@ -104,9 +104,6 @@ class AssociateScreen extends Component {
         .then((res) => {
           this.handleEmployeeList(res.data, this);
         });
-
-      const path = window.location.pathname.split("/")
-      axios.put(`${process.env.REACT_APP_API_URL}/api/data-team/${path[path.length-1]}`)
     } catch (error) {
       console.log("!!! GetAllEmployeesLite error", error);
     }
