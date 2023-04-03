@@ -198,7 +198,7 @@ class AssociateScreen extends Component {
       e.preventDefault();
       const newProviderDoc = {
         employee_id: this.state.employeeIdMap[this.state.employee],
-        document_type: this.state.docType,
+        document_type: this.state.docType.value,
         s3_key: this.state.s3Key,
         expiry_date: this.state.expirationDate,
       };
