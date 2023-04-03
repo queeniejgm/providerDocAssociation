@@ -46,10 +46,15 @@
   border-radius: 4px;
   display: flex;
   justify-content: space-between;
+  /* flex-direction: column; */
 }
 
 .pdf {
   flex: 1;
+}
+
+.pdf embed {
+  width: 100%;
 }
 
 .form {
