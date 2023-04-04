@@ -243,7 +243,7 @@ class AssociateScreen extends Component {
             message.error(addProviderDocResp.data.message)
           } else {
             message.success("Successful!");
-            this.setState({ docType: "", expiry_date: null });
+            this.setState({ docType: "" });
           }
         }
 
@@ -297,7 +297,6 @@ class AssociateScreen extends Component {
           <input
             type="date"
             onChange={(e) => this.setState({ expirationDate: e.target.value })}
-            value={this.state.expirationDate}
           />{" "}
           <br />
           <Button onClick={createProviderDoc}>Save</Button>
