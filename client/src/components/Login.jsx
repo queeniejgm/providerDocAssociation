@@ -16,8 +16,7 @@ class AssociateScreenLogin extends Component {
       member: "",
       memberName: "",
       memberOptions: [],
-      memberList: [],
-      memberNumOfDocs: 0
+      memberList: []
     };
   }
 
@@ -55,21 +54,7 @@ class AssociateScreenLogin extends Component {
   };
 
   login = async (e) => {
-    const member = this.state.memberList.find(member =>  member._id === e.value)
-    this.setState({ member: e.value, memberNumOfDocs: member. number_of_docs_associated})
-    // if(!member) {
-    //   return;
-    // }
-    // try {
-    //   axios.put(`${process.env.REACT_APP_API_URL}/api/data-team/${member._id}`, {number_of_docs_associated: member.number_of_docs_associated+1})
-    //     .then((res) => {
-    //       window.location.href = "/main"
-    //     }, err => {
-    //       message.error(err.message)
-    //     });
-    // } catch (error) {
-    //   console.log("!!! handleSubmit error", error);
-    // }
+    this.setState({ member: e.value})
   };
 
   render() {
@@ -81,12 +66,9 @@ class AssociateScreenLogin extends Component {
         <button onClick={this.handleSubmit}>Add Data Team Member</button>
         <Select
           onChange={this.login}
-          // onChange={(member, e) => {
-          //   this.setState({ member: member.value });
-          // }}
           options={this.state.memberOptions}
         />
-        <Link to={`/main/${this.state.member}/${this.state.memberNumOfDocs}`} state={{ member: this.state.member }}>
+        <Link to={`/main/${this.state.member}`} state={{ member: this.state.member }}>
           <button>Login</button>
         </Link>
       </div>
