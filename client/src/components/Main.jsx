@@ -96,7 +96,7 @@ class AssociateScreen extends Component {
 
   async componentDidMount() {
     const path = window.location.pathname.split("/");
-    this.setState({memberId: path[path.length-1]})
+    this.setState({memberId: path[2]})
     this.refreshDocument();
 
     try {
