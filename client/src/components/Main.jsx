@@ -22,6 +22,8 @@ class AssociateScreen extends Component {
       employeeNameItems: [],
       employeeIdMap: {},
       isLoading: true,
+      numOfDocs: 0,
+      memberId: ''
     };
 
     this.dockTypeItems = [
@@ -94,6 +96,8 @@ class AssociateScreen extends Component {
   }
 
   async componentDidMount() {
+    const path = window.location.pathname.split("/");
+    this.setState({memberId: path[path.length-2], numOfDocs: path[path.length-1]})
     this.refreshDocument();
 
     try {
@@ -189,10 +193,6 @@ class AssociateScreen extends Component {
 
   render() {
     const createProviderDoc = async (e) => {
-      if (!this.state.expirationDate) {
-        message.error("Expiration Date is required");
-        return;
-      }
       if (!this.state.employee) {
         message.error("Employee is required");
         return;
@@ -222,6 +222,15 @@ class AssociateScreen extends Component {
         if(addProviderDocResp.data.errors) {
           message.error(addProviderDocResp.data.message)
         } else {
+          axios.put(`${process.env.REACT_APP_API_URL}/api/data-team/${this.state.memberId}`, {number_of_docs_associated: parseInt(this.state.numOfDocs)+1})
+          .then((res) => {
+            console.log("!!! up", res)
+            this.setState({numOfDocs: parseInt(this.state.numOfDocs)+1})
+            // window.location.href = "/main"
+          }, err => {
+            message.error(err.message)
+          });
+
           const updateProviderDocResp = await axios.put(
             `${process.env.REACT_APP_API_URL}/api/s3-provider-docs/${this.state.s3DocId}`,
             { associated: true },
@@ -281,6 +290,7 @@ class AssociateScreen extends Component {
             }}
             placeholder="Select a Document Type"
             options={this.dockTypeItems}
+            value={this.state.docType}
           />
           <br />
           Expiration Date:{" "}

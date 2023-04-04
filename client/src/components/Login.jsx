@@ -16,7 +16,8 @@ class AssociateScreenLogin extends Component {
       member: "",
       memberName: "",
       memberOptions: [],
-      memberList: []
+      memberList: [],
+      memberNumOfDocs: 0
     };
   }
 
@@ -54,20 +55,21 @@ class AssociateScreenLogin extends Component {
   };
 
   login = async (e) => {
-    const member = this.state.memberList.find(member =>  member._id === this.state.member)
-    if(!member) {
-      return;
-    }
-    try {
-      axios.put(`${process.env.REACT_APP_API_URL}/api/data-team/${member._id}`, {number_of_docs_associated: member.number_of_docs_associated+1})
-        .then((res) => {
-          window.location.href = "/main"
-        }, err => {
-          message.error(err.message)
-        });
-    } catch (error) {
-      console.log("!!! handleSubmit error", error);
-    }
+    const member = this.state.memberList.find(member =>  member._id === e.value)
+    this.setState({ member: e.value, memberNumOfDocs: member. number_of_docs_associated})
+    // if(!member) {
+    //   return;
+    // }
+    // try {
+    //   axios.put(`${process.env.REACT_APP_API_URL}/api/data-team/${member._id}`, {number_of_docs_associated: member.number_of_docs_associated+1})
+    //     .then((res) => {
+    //       window.location.href = "/main"
+    //     }, err => {
+    //       message.error(err.message)
+    //     });
+    // } catch (error) {
+    //   console.log("!!! handleSubmit error", error);
+    // }
   };
 
   render() {
@@ -78,12 +80,15 @@ class AssociateScreenLogin extends Component {
         ></Input>
         <button onClick={this.handleSubmit}>Add Data Team Member</button>
         <Select
-          onChange={(member, e) => {
-            this.setState({ member: member.value });
-          }}
+          onChange={this.login}
+          // onChange={(member, e) => {
+          //   this.setState({ member: member.value });
+          // }}
           options={this.state.memberOptions}
         />
-        <Button onClick={this.login} >Login</Button>
+        <Link to={`/main/${this.state.member}/${this.state.memberNumOfDocs}`} state={{ member: this.state.member }}>
+          <button>Login</button>
+        </Link>
       </div>
     );
   }
