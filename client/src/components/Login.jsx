@@ -1,12 +1,12 @@
 /***
  * GHU-309
  */
+import { message } from "antd";
 import React, { Component } from "react";
 import { Link } from "react-router-dom";
 import Select from "react-select";
 import { Input } from "reactstrap";
-import axios from "axios";
-import { Button, message } from "antd";
+import {axiosInstance} from './../helpers/https'
 
 class AssociateScreenLogin extends Component {
   constructor(props) {
@@ -26,7 +26,7 @@ class AssociateScreenLogin extends Component {
 
   async refreshTeamMemberList() {
     try {
-      axios.get(`${process.env.REACT_APP_API_URL}/api/data-team`).then((res) => {
+      axiosInstance.get(`${process.env.REACT_APP_API_URL}/api/data-team`).then((res) => {
         const memberOptions = res.data.map((member) => {
           return { value: member._id, label: member.member_name };
         });
@@ -43,13 +43,14 @@ class AssociateScreenLogin extends Component {
       member_name: this.state.memberName,
     };
     try {
-      axios
+      axiosInstance
         .post(`${process.env.REACT_APP_API_URL}/api/data-team`, newMember)
         .then((res) => {
+          message.success(`${newMember.member_name} is added`)
           this.refreshTeamMemberList();
+          this.setState({ memberName: "" });
         });
     } catch (error) {
-      console.log("!!! handleSubmit error", error);
     }
   };
 
@@ -62,6 +63,7 @@ class AssociateScreenLogin extends Component {
       <div>
         <Input
           onChange={(e) => this.setState({ memberName: e.target.value })}
+          value={this.state.memberName}
         ></Input>
         <button onClick={this.handleSubmit}>Add Data Team Member</button>
         <Select
