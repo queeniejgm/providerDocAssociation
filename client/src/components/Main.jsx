@@ -4,16 +4,18 @@
 import React, { Component } from "react";
 import Select from "react-select";
 import * as _ from "lodash";
-import { Button, message } from "antd";
-import * as moment from 'moment'
-import {axiosInstance} from './../helpers/https'
+import { Button, message, Spin } from "antd";
+import * as moment from "moment";
+import { axiosInstance } from "./../helpers/https";
+import { Document, Page } from "react-pdf";
+import PDFViewer from 'pdf-viewer-reactjs'
 
 class AssociateScreen extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      s3Image: [],
+      s3Image: "",
       employee: "",
       docType: "",
       expirationDate: "",
@@ -22,7 +24,8 @@ class AssociateScreen extends Component {
       employeeNameItems: [],
       employeeIdMap: {},
       isLoading: true,
-      memberId: ''
+      docLoading: true,
+      memberId: "",
     };
 
     this.dockTypeItems = [
@@ -96,7 +99,7 @@ class AssociateScreen extends Component {
 
   async componentDidMount() {
     const path = window.location.pathname.split("/");
-    this.setState({memberId: path[2]})
+    this.setState({ memberId: path[2] });
     this.refreshDocument();
 
     axiosInstance
@@ -113,14 +116,26 @@ class AssociateScreen extends Component {
       .get(
         `${process.env.REACT_APP_API_URL}/api/s3-provider-docs/one-to-associate`
       )
-      .then((res) => {
-        this.setState({ s3DocId: res.data._id });
-        this.handleS3Doc(res.data.s3_key);
+      .then(
+        (res) => {
+          this.setState({ s3DocId: res.data._id, docLoading: false });
+          this.handleS3Doc(res.data.s3_key);
 
-        // code to not get pdfs that have been pulled in the last 15mins 
-        axiosInstance.put(`${process.env.REACT_APP_API_URL}/api/s3-provider-docs/${res.data._id}`, {reviewed:moment().add(15,"minutes").format()});
-      });
-
+          // code to not get pdfs that have been pulled in the last 15mins
+          axiosInstance.put(
+            `${process.env.REACT_APP_API_URL}/api/s3-provider-docs/${res.data._id}`,
+            { reviewed: moment().add(15, "minutes").format() }
+          );
+        },
+        (err) => {
+          this.setState({
+            s3DocId: null,
+            s3Key: null,
+            s3Image: null,
+            docLoading: false,
+          });
+        }
+      );
   }
 
   handleS3Doc = async (tempS3Key) => {
@@ -137,15 +152,23 @@ class AssociateScreen extends Component {
     };
     axiosInstance
       .get(
-        `${process.env.REACT_APP_S3_URL}/dev/patient/document_download?file_path=${body.file_path}&s3_bucket=${body.s3_bucket}&base64=${body.base64}`,
+        `${process.env.REACT_APP_S3_URL}/dev/patient/document_download_v2?file_path=${body.file_path}&s3_bucket=${body.s3_bucket}&base64=${body.base64}`,
         config,
         {},
         true,
         true
       )
-      .then((res) => {
-        this.setState({ s3Image: `data:application/pdf;base64,${res.data.data}` });
-      });
+      .then(
+        (res) => {
+          this.setState({
+            s3Image: res.data.s3_url,
+            docLoading: false,
+          });
+        },
+        (err) => {
+          this.setState({ s3Image: null, docLoading: false });
+        }
+      );
   };
 
   handleEmployeeList = (data, self) => {
@@ -204,23 +227,32 @@ class AssociateScreen extends Component {
         true,
         true
       );
-      
-      if(addProviderDocResp.data.errors) {
-        message.error(addProviderDocResp.data.message)
+
+      if (addProviderDocResp.data.errors) {
+        message.error(addProviderDocResp.data.message);
       } else {
-        
-        axiosInstance.get(
-          `${process.env.REACT_APP_API_URL}/api/data-team/${this.state.memberId}`,
-          {},
-          true,
-          true
-        ).then(memberDetails => {
-          axiosInstance.put(`${process.env.REACT_APP_API_URL}/api/data-team/${this.state.memberId}`, 
-          {number_of_docs_associated: parseInt(memberDetails.data.number_of_docs_associated)+1})
-          .then((res) => {
-            message.success(`Number of associated docs: ${res.data.number_of_docs_associated}`)
+        axiosInstance
+          .get(
+            `${process.env.REACT_APP_API_URL}/api/data-team/${this.state.memberId}`,
+            {},
+            true,
+            true
+          )
+          .then((memberDetails) => {
+            axiosInstance
+              .put(
+                `${process.env.REACT_APP_API_URL}/api/data-team/${this.state.memberId}`,
+                {
+                  number_of_docs_associated:
+                    parseInt(memberDetails.data.number_of_docs_associated) + 1,
+                }
+              )
+              .then((res) => {
+                message.success(
+                  `Number of associated docs: ${res.data.number_of_docs_associated}`
+                );
+              });
           });
-        })
 
         const updateProviderDocResp = await axiosInstance.put(
           `${process.env.REACT_APP_API_URL}/api/s3-provider-docs/${this.state.s3DocId}`,
@@ -230,28 +262,43 @@ class AssociateScreen extends Component {
           true
         );
 
-        if(updateProviderDocResp.data.errors) {
-          message.error(addProviderDocResp.data.message)
+        if (updateProviderDocResp.data.errors) {
+          message.error(addProviderDocResp.data.message);
         } else {
           this.setState({ docType: "" });
         }
       }
     };
 
-    const refreshDocument = async() => {
+    const refreshDocument = async () => {
+      this.setState({ docLoading: true });
       axiosInstance
         .get(
           `${process.env.REACT_APP_API_URL}/api/s3-provider-docs/one-to-associate`
         )
-        .then((res) => {
-          this.setState({ s3DocId: res.data._id });
-          this.handleS3Doc(res.data.s3_key);
+        .then(
+          (res) => {
+            this.setState({ s3DocId: res.data._id });
+            this.handleS3Doc(res.data.s3_key);
 
-          // code to not get pdfs that have been pulled in the last 15mins 
-          axiosInstance.put(`${process.env.REACT_APP_API_URL}/api/s3-provider-docs/${res.data._id}`, {reviewed:moment().add(15,"minutes").format()});
-        });
-    }
-
+            // code to not get pdfs that have been pulled in the last 15mins
+            axiosInstance.put(
+              `${process.env.REACT_APP_API_URL}/api/s3-provider-docs/${res.data._id}`,
+              { reviewed: moment().add(15, "minutes").format() }
+            );
+          },
+          (err) => {
+            this.setState({
+              s3DocId: null,
+              s3Key: null,
+              s3Image: null,
+              docLoading: false,
+            });
+          }
+        );
+    };
+    
+    // const s3Image = this.state.s3Image
     return (
       <div className="associate-screen-wrapper">
         <div className="form">
@@ -284,8 +331,14 @@ class AssociateScreen extends Component {
           <Button onClick={createProviderDoc}>Save</Button>
         </div>
         <div className="pdf">
-          <Button onClick={refreshDocument}>Next</Button>{" "}
-          {this.state.s3Key}
+          {this.state.docLoading && <Spin />}
+
+          {!this.state.docLoading && (
+            <>
+              <Button onClick={refreshDocument}>Next</Button> {this.state.s3Key}
+            </>
+          )}
+
           <embed
             src={this.state.s3Image}
             type="application/pdf"
