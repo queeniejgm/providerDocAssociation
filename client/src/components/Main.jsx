@@ -139,14 +139,14 @@ class AssociateScreen extends Component {
   }
 
   handleS3Doc = async (tempS3Key) => {
-    this.setState({ s3Key: tempS3Key });
+    this.setState({ s3Key: tempS3Key});
     const config = {
       headers: {
         Authorization: `Bearer ${process.env.REACT_APP_BEARER_TOKEN}`,
       },
     };
     const body = {
-      file_path: tempS3Key.substring(1),
+      file_path: encodeURIComponent(tempS3Key.substring(1)),
       s3_bucket: "goshen-provider-documents",
       base64: "true",
     };
@@ -160,6 +160,7 @@ class AssociateScreen extends Component {
       )
       .then(
         (res) => {
+          console.log("!!! decode", decodeURI(res.data.s3_url))
           this.setState({
             s3Image: res.data.s3_url,
             docLoading: false,
@@ -342,8 +343,10 @@ class AssociateScreen extends Component {
           <embed
             src={this.state.s3Image}
             type="application/pdf"
+            down
             height="800px"
           />
+          
         </div>
       </div>
     );
